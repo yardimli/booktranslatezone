@@ -103,6 +103,7 @@
 								</optgroup>
 							</select>
 							<button type="button" id="clone-example-btn" class="h-10 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium">Clone & Edit</button>
+							<a href="#" id="edit-example-link" target="_blank" class="hidden h-10 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors">Edit</a>
 						</div>
 					</div>
 					<div class="space-y-2">
@@ -150,6 +151,7 @@
 				</div>
 			</form>
 		</div>
+
 		<!-- Existing Projects List -->
 		<div class="rounded-xl border bg-card text-card-foreground shadow">
 			<div class="p-6">

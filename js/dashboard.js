@@ -1,23 +1,14 @@
 // booktranslatezone/js/dashboard.js
-document.addEventListener('DOMContentLoaded', function () {
-	// Access data passed from PHP via the initialData object
+document.addEventListener('DOMContentLoaded', function () { // Access data passed from PHP via the initialData object
 	const projects = initialData.projects;
-	const defaultModels = initialData.defaultModels;
-	
-	// --- THEME TOGGLE ---
+	const defaultModels = initialData.defaultModels; // --- THEME TOGGLE ---
 	const themeToggleButton = document.getElementById('theme-toggle-btn');
 	if (themeToggleButton) {
 		themeToggleButton.addEventListener('click', () => {
 			const isDark = document.documentElement.classList.toggle('dark');
 			localStorage.setItem('theme', isDark ? 'dark' : 'light');
 		});
-	}
-	
-	// --- IMPORTANT NOTE ---
-	// This version uses client-side AJAX to process translations.
-	// The browser tab MUST remain open for the translation to continue.
-	
-	// --- API KEY MODAL ---
+	} // --- IMPORTANT NOTE --- // This version uses client-side AJAX to process translations. // The browser tab MUST remain open for the translation to continue. // --- API KEY MODAL ---
 	const apiKeyModal = document.getElementById('api-key-modal');
 	const openModalBtn = document.getElementById('api-key-btn');
 	const closeModalBtn = document.getElementById('close-api-modal-btn');
@@ -33,7 +24,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		saveKeysBtn.disabled = true;
 		saveKeysBtn.textContent = 'Saving...';
 		apiKeyStatus.textContent = '';
-		fetch('api/save_keys.php', {method: 'POST', body: formData})
+		fetch('api/save_keys.php', {
+			method: 'POST',
+			body: formData
+		})
 			.then(res => res.json())
 			.then(data => {
 				if (data.success) {
@@ -51,12 +45,11 @@ document.addEventListener('DOMContentLoaded', function () {
 			saveKeysBtn.disabled = false;
 			saveKeysBtn.textContent = 'Save Keys';
 		});
-	});
-	
-	// --- CLONE & EDIT MODAL ---
+	}); // --- CLONE & EDIT MODAL ---
 	const cloneModal = document.getElementById('clone-modal');
 	const clonePromptBtn = document.getElementById('clone-prompt-btn');
 	const cloneExampleBtn = document.getElementById('clone-example-btn');
+	const editExampleLink = document.getElementById('edit-example-link');
 	const cancelCloneBtn = document.getElementById('cancel-clone-btn');
 	const saveCloneBtn = document.getElementById('save-clone-btn');
 	const cloneModalTitle = document.getElementById('clone-modal-title');
@@ -69,15 +62,29 @@ document.addEventListener('DOMContentLoaded', function () {
 	const promptSelect = document.getElementById('prompt_file');
 	const exampleSelect = document.getElementById('examples_file');
 	
-	function updateCloneButton(type) {
-		const select = type === 'prompt' ? promptSelect : exampleSelect;
-		const button = type === 'prompt' ? clonePromptBtn : cloneExampleBtn;
+	function updatePromptButton() {
+		const select = promptSelect;
+		const button = clonePromptBtn;
 		if (!select || !button) return;
 		const selectedOption = select.options[select.selectedIndex];
 		if (selectedOption && selectedOption.parentElement.tagName === 'OPTGROUP' && selectedOption.parentElement.label.startsWith('Custom')) {
 			button.textContent = 'Edit';
 		} else {
 			button.textContent = 'Clone & Edit';
+		}
+	}
+	
+	function updateExampleButton() {
+		if (!exampleSelect) return;
+		const selectedOption = exampleSelect.options[exampleSelect.selectedIndex];
+		const isCustom = selectedOption && selectedOption.parentElement.tagName === 'OPTGROUP' && selectedOption.parentElement.label.startsWith('Custom');
+		if (isCustom) {
+			cloneExampleBtn.classList.add('hidden');
+			editExampleLink.classList.remove('hidden');
+			editExampleLink.href = `edit_example.php?file=${encodeURIComponent(exampleSelect.value)}`;
+		} else {
+			cloneExampleBtn.classList.remove('hidden');
+			editExampleLink.classList.add('hidden');
 		}
 	}
 	
@@ -127,14 +134,13 @@ document.addEventListener('DOMContentLoaded', function () {
 		cloneNameInput.readOnly = false;
 		cloneNameInput.classList.remove('bg-secondary', 'cursor-not-allowed');
 	}
-	
 	if (promptSelect) {
-		promptSelect.addEventListener('change', () => updateCloneButton('prompt'));
-		updateCloneButton('prompt');
+		promptSelect.addEventListener('change', updatePromptButton);
+		updatePromptButton();
 	}
 	if (exampleSelect) {
-		exampleSelect.addEventListener('change', () => updateCloneButton('example'));
-		updateCloneButton('example');
+		exampleSelect.addEventListener('change', updateExampleButton);
+		updateExampleButton();
 	}
 	if (clonePromptBtn) clonePromptBtn.addEventListener('click', () => openCloneModal('prompt'));
 	if (cloneExampleBtn) cloneExampleBtn.addEventListener('click', () => openCloneModal('example'));
@@ -148,15 +154,17 @@ document.addEventListener('DOMContentLoaded', function () {
 		saveCloneBtn.disabled = true;
 		saveCloneBtn.textContent = 'Saving...';
 		cloneStatus.textContent = '';
-		fetch('api/clone_and_save.php', {method: 'POST', body: formData})
+		fetch('api/clone_and_save.php', {
+			method: 'POST',
+			body: formData
+		})
 			.then(res => res.json())
 			.then(data => {
 				if (data.success) {
 					cloneStatus.className = 'text-sm text-green-600';
 					cloneStatus.textContent = data.message;
 					const isEditMode = originalFileInput.value !== '';
-					if (!isEditMode && data.new_file) {
-						// Only add to dropdown if it was a clone (new file)
+					if (!isEditMode && data.new_file) { // Only add to dropdown if it was a clone (new file)
 						const type = cloneTypeInput.value;
 						const select = type === 'prompt' ? promptSelect : exampleSelect;
 						let optgroup = select.querySelector('optgroup[label="Custom Prompts"]') || select.querySelector('optgroup[label="Custom Examples"]');
@@ -170,7 +178,11 @@ document.addEventListener('DOMContentLoaded', function () {
 						newOption.textContent = data.new_file.text;
 						optgroup.prepend(newOption);
 						newOption.selected = true;
-						updateCloneButton(type); // Update button text to "Edit"
+						if (type === 'prompt') {
+							updatePromptButton();
+						} else {
+							updateExampleButton();
+						}
 					}
 					setTimeout(closeCloneModal, 1500);
 				} else {
@@ -186,9 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				saveCloneBtn.disabled = false;
 				saveCloneBtn.textContent = originalText;
 			});
-	});
-	
-	// --- DYNAMIC MODEL INPUT ---
+	}); // --- DYNAMIC MODEL INPUT ---
 	const serviceSelect = document.getElementById('llm_service');
 	const modelInput = document.getElementById('model_name_input');
 	const modelSelect = document.getElementById('model_name_select');
@@ -211,14 +221,15 @@ document.addEventListener('DOMContentLoaded', function () {
 			hiddenModelInput.value = modelInput.value;
 		}
 	}
-	
 	if (serviceSelect) serviceSelect.addEventListener('change', toggleModelInput);
 	if (modelInput) modelInput.addEventListener('input', () => hiddenModelInput.value = modelInput.value);
 	if (modelSelect) modelSelect.addEventListener('change', () => hiddenModelInput.value = modelSelect.value);
 	if (refreshBtn) refreshBtn.addEventListener('click', function () {
 		this.disabled = true;
 		this.textContent = 'Refreshing...';
-		fetch('api/refresh_models.php', {method: 'POST'})
+		fetch('api/refresh_models.php', {
+			method: 'POST'
+		})
 			.then(response => response.json())
 			.then(data => {
 				if (data.success) {
@@ -235,55 +246,57 @@ document.addEventListener('DOMContentLoaded', function () {
 			this.textContent = 'Refresh List';
 		});
 	});
-	toggleModelInput();
-	
-	// --- AJAX-BASED TRANSLATION LOGIC ---
+	toggleModelInput(); // --- AJAX-BASED TRANSLATION LOGIC ---
 	const translationJobs = {}; // Stores the state of each running job
-	
 	async function translateNextSection(projectId) {
 		const job = translationJobs[projectId];
 		const project = projects.find(p => p.id === projectId);
-		
 		if (!job || !job.isRunning || !project) {
-			updateUI(projectId, {status: 'paused', done: project.progress_done, total: project.progress_total});
+			updateUI(projectId, {
+				status: 'paused',
+				done: project.progress_done,
+				total: project.progress_total
+			});
 			return; // Job was stopped or completed
-		}
-		
-		// Update UI to show we are working
-		updateUI(projectId, {status: 'translating', done: project.progress_done, total: project.progress_total});
-		
+		} // Update UI to show we are working
+		updateUI(projectId, {
+			status: 'translating',
+			done: project.progress_done,
+			total: project.progress_total
+		});
 		const formData = new FormData();
-		formData.append('project_id', projectId);
-		// We no longer send section_index; the server finds the next pending one.
-		
+		formData.append('project_id', projectId); // We no longer send section_index; the server finds the next pending one.
 		try {
-			const response = await fetch('api/translate_section.php', {method: 'POST', body: formData});
+			const response = await fetch('api/translate_section.php', {
+				method: 'POST',
+				body: formData
+			});
 			if (!response.ok) {
 				throw new Error(`Server responded with status ${response.status}`);
 			}
 			const data = await response.json();
-			
 			if (!data.success) {
 				throw new Error(data.message || 'An unknown error occurred on the server.');
-			}
-			
-			// Update client-side project data with accurate count from server
+			} // Update client-side project data with accurate count from server
 			project.progress_done = data.new_progress_done || project.progress_done;
-			
-			if (data.completed) {
-				// Project is fully translated
+			if (data.completed) { // Project is fully translated
 				job.isRunning = false;
 				project.progress_done = project.progress_total;
-				updateUI(projectId, {status: 'complete', done: project.progress_total, total: project.progress_total});
+				updateUI(projectId, {
+					status: 'complete',
+					done: project.progress_total,
+					total: project.progress_total
+				});
 				return; // End the loop
-			}
-			
-			// A section was translated successfully, continue to the next one
+			} // A section was translated successfully, continue to the next one
 			setTimeout(() => translateNextSection(projectId), 100); // Small delay
-			
 		} catch (error) {
 			job.isRunning = false;
-			updateUI(projectId, {status: 'error', done: project.progress_done, total: project.progress_total});
+			updateUI(projectId, {
+				status: 'error',
+				done: project.progress_done,
+				total: project.progress_total
+			});
 			alert(`Translation failed for project ${project.name}: ${error.message}`);
 		}
 	}
@@ -294,14 +307,18 @@ document.addEventListener('DOMContentLoaded', function () {
 		const action = button.textContent.toLowerCase();
 		const formData = new FormData();
 		formData.append('project_id', projectId);
-		
 		if (action === 'translate' || action === 'resume' || action === 'retry') {
 			formData.append('action', 'start'); // 'start', 'resume', 'retry' all initiate the process
-			fetch('api/control_project.php', {method: 'POST', body: formData})
+			fetch('api/control_project.php', {
+				method: 'POST',
+				body: formData
+			})
 				.then(res => res.json())
 				.then(data => {
 					if (data.success) {
-						translationJobs[projectId] = {isRunning: true};
+						translationJobs[projectId] = {
+							isRunning: true
+						};
 						translateNextSection(projectId);
 					} else {
 						alert(`Error: ${data.message}`);
@@ -312,22 +329,24 @@ document.addEventListener('DOMContentLoaded', function () {
 				translationJobs[projectId].isRunning = false; // Signal the loop to stop
 			}
 			formData.append('action', 'pause');
-			fetch('api/control_project.php', {method: 'POST', body: formData}); // Inform server
+			fetch('api/control_project.php', {
+				method: 'POST',
+				body: formData
+			}); // Inform server
 			const project = projects.find(p => p.id === projectId);
-			updateUI(projectId, {status: 'paused', done: project.progress_done, total: project.progress_total});
+			updateUI(projectId, {
+				status: 'paused',
+				done: project.progress_done,
+				total: project.progress_total
+			});
 		}
-	}
-	
-	// --- UI AND EXPORT ---
+	} // --- UI AND EXPORT ---
 	const exportModal = document.getElementById('export-modal');
 	const closeExportModalBtn = document.getElementById('close-modal-btn');
 	const exportFileList = document.getElementById('export-file-list');
 	
 	function showExportModal(singleFile, parallelFile) {
-		exportFileList.innerHTML = `
-            <li><a href="output/${singleFile}" target="_blank" class="font-medium text-primary underline-offset-4 hover:underline">Single View (Translation Only)</a></li>
-            <li><a href="output/${parallelFile}" target="_blank" class="font-medium text-primary underline-offset-4 hover:underline">Parallel View (Side-by-Side)</a></li>
-        `;
+		exportFileList.innerHTML = ` <li><a href="output/${singleFile}" target="_blank" class="font-medium text-primary underline-offset-4 hover:underline">Single View (Translation Only)</a></li> <li><a href="output/${parallelFile}" target="_blank" class="font-medium text-primary underline-offset-4 hover:underline">Parallel View (Side-by-Side)</a></li> `;
 		exportModal.classList.remove('hidden');
 	}
 	
@@ -346,7 +365,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		button.textContent = '...';
 		const formData = new FormData();
 		formData.append('project_id', projectId);
-		fetch(`api/export.php`, {method: 'POST', body: formData})
+		fetch(`api/export.php`, {
+			method: 'POST',
+			body: formData
+		})
 			.then(response => response.json())
 			.then(data => {
 				if (data.success) {
@@ -371,21 +393,16 @@ document.addEventListener('DOMContentLoaded', function () {
 		const controlBtn = document.querySelector(`.btn-control[data-project-id="${projectId}"]`);
 		const exportBtn = document.querySelector(`.btn-export[data-project-id="${projectId}"]`);
 		const viewBtn = document.querySelector(`.btn-view[data-project-id="${projectId}"]`);
-		
 		if (!progressBar || !progressText || !statusBadge || !controlBtn || !exportBtn) return;
-		
 		const percent = data.total > 0 ? (data.done / data.total) * 100 : 0;
 		progressBar.style.width = `${percent}%`;
 		progressText.textContent = `${data.done} / ${data.total} sections (${Math.round(percent)}%)`;
-		
 		const badgeBaseClasses = 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2';
 		const buttonBaseClasses = 'btn-control inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3';
-		
 		statusBadge.textContent = data.status;
 		statusBadge.className = badgeBaseClasses;
 		controlBtn.className = buttonBaseClasses;
 		controlBtn.disabled = false;
-		
 		switch (data.status) {
 			case 'translating':
 				statusBadge.classList.add('border-transparent', 'bg-yellow-500/20', 'text-yellow-700');
@@ -414,7 +431,6 @@ document.addEventListener('DOMContentLoaded', function () {
 				controlBtn.classList.add('bg-primary', 'text-primary-foreground', 'hover:bg-primary/90');
 				break;
 		}
-		
 		const hasProgress = data.done > 0;
 		exportBtn.disabled = !hasProgress;
 		if (viewBtn) {
@@ -424,9 +440,7 @@ document.addEventListener('DOMContentLoaded', function () {
 				viewBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
 			}
 		}
-	}
-	
-	// --- Initial Page Load ---
+	} // --- Initial Page Load ---
 	projects.forEach(project => {
 		updateUI(project.id, {
 			done: project.progress_done,
@@ -435,7 +449,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 		const controlBtn = document.querySelector(`.btn-control[data-project-id="${project.id}"]`);
 		if (controlBtn) controlBtn.addEventListener('click', handleControlButtonClick);
-		
 		const exportBtn = document.querySelector(`.btn-export[data-project-id="${project.id}"]`);
 		if (exportBtn) exportBtn.addEventListener('click', handleExportClick);
 	});
