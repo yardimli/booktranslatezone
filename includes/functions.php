@@ -4,7 +4,6 @@
 	define('EXAMPLES_DIR', __DIR__ . '/../examples/');
 	define('UPLOADS_DIR', __DIR__ . '/../uploads/');
 	define('OUTPUT_DIR', __DIR__ . '/../output/');
-	define('WORKER_SCRIPT', __DIR__ . '/../worker/worker.php');
 	define('OPENROUTER_MODELS_FILE', __DIR__ . '/../openrouter_models.json');
 
 // --- HELPER FUNCTIONS ---
