@@ -6,6 +6,24 @@
 	define('OUTPUT_DIR', __DIR__ . '/../output/');
 	define('OPENROUTER_MODELS_FILE', __DIR__ . '/../openrouter_models.json');
 
+	//make sure directories exist
+	if (!is_dir(PROJECTS_DIR)) {
+		mkdir(PROJECTS_DIR, 0775, true);
+	}
+	if (!is_dir(PROMPTS_DIR)) {
+		mkdir(PROMPTS_DIR, 0775, true);
+	}
+	if (!is_dir(EXAMPLES_DIR)) {
+		mkdir(EXAMPLES_DIR, 0775, true);
+	}
+	if (!is_dir(UPLOADS_DIR)) {
+		mkdir(UPLOADS_DIR, 0775, true);
+	}
+	if (!is_dir(OUTPUT_DIR)) {
+		mkdir(OUTPUT_DIR, 0775, true);
+	}
+
+
 // --- HELPER FUNCTIONS ---
 	function get_user_project_dir($user_id) {
 		$path = PROJECTS_DIR . $user_id . '/';

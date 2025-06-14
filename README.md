@@ -23,7 +23,7 @@ You need a web server with PHP support (like Apache or Nginx). Make sure the `cu
     ```
 
 ### 3. Configuration
-1.  Edit the file `includes/db.php` and enter your database credentials.
+1.  Copy the file `includes/db.copy.php` to `includes/db.php` and enter your database credentials.
 
 ### 4. File Permissions
 The web server needs permission to write to the following directories. On a Linux system, you can often achieve this with:
