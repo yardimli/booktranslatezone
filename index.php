@@ -2,11 +2,9 @@
 	// Start the session to check for an existing login
 	session_start();
 
-	// If the user is already logged in, redirect them to the dashboard
-	if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-		header("location: dashboard.php");
-		exit;
-	}
+	// The redirect logic has been removed from here.
+	// The page will now display for both logged-in and logged-out users,
+	// but the header will change dynamically.
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -148,12 +146,25 @@
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
 				<span class="sr-only">Toggle theme</span>
 			</button>
-			<a href="login.php" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80">
-				Login
-			</a>
-			<a href="register.php" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
-				Register
-			</a>
+
+			<?php if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
+				<!-- Show these buttons if the user is logged in -->
+				<a href="dashboard.php" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80">
+					Dashboard
+				</a>
+				<a href="logout.php" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+					Logout
+				</a>
+			<?php else: ?>
+				<!-- Show these buttons if the user is NOT logged in -->
+				<a href="login.php" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80">
+					Login
+				</a>
+				<a href="register.php" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90">
+					Register
+				</a>
+			<?php endif; ?>
+
 		</div>
 	</div>
 </header>
