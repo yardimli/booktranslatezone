@@ -6,11 +6,11 @@
 		<form id="api-key-form" class="space-y-4 pt-2">
 			<div>
 				<label for="openai_key" class="text-sm font-medium leading-none">OpenAI API Key</label>
-				<input type="password" id="openai_key" name="openai_key" placeholder="sk-..." class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1">
+				<input type="password" id="openai_key" name="openai_key" placeholder="sk-..." class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1" autocomplete="new-password">
 			</div>
 			<div>
 				<label for="openrouter_key" class="text-sm font-medium leading-none">OpenRouter API Key</label>
-				<input type="password" id="openrouter_key" name="openrouter_key" placeholder="sk-or-..." class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1">
+				<input type="password" id="openrouter_key" name="openrouter_key" placeholder="sk-or-..." class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1" autocomplete="new-password">
 			</div>
 		</form>
 		<div id="api-key-status" class="text-sm"></div>
