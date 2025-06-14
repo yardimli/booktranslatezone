@@ -21,6 +21,14 @@
 		exit;
 	}
 
+// --- NEW: Server-side validation for system prompts ---
+	if ($type === 'prompt') {
+		if (strpos($content, '**EXAMPLES**') === false) {
+			echo json_encode(['success' => false, 'message' => 'System prompt content must include the placeholder **EXAMPLES** for the system to work correctly.']);
+			exit;
+		}
+	}
+
 // Verify JSON format if the type is 'example'
 	if ($type === 'example') {
 		json_decode($content);

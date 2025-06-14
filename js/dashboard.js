@@ -1,14 +1,23 @@
 // booktranslatezone/js/dashboard.js
-document.addEventListener('DOMContentLoaded', function () { // Access data passed from PHP via the initialData object
+document.addEventListener('DOMContentLoaded', function () {
+	// Access data passed from PHP via the initialData object
 	const projects = initialData.projects;
-	const defaultModels = initialData.defaultModels; // --- THEME TOGGLE ---
+	const defaultModels = initialData.defaultModels;
+	
+	// --- THEME TOGGLE ---
 	const themeToggleButton = document.getElementById('theme-toggle-btn');
 	if (themeToggleButton) {
 		themeToggleButton.addEventListener('click', () => {
 			const isDark = document.documentElement.classList.toggle('dark');
 			localStorage.setItem('theme', isDark ? 'dark' : 'light');
 		});
-	} // --- IMPORTANT NOTE --- // This version uses client-side AJAX to process translations. // The browser tab MUST remain open for the translation to continue. // --- API KEY MODAL ---
+	}
+	
+	// --- IMPORTANT NOTE ---
+	// This version uses client-side AJAX to process translations.
+	// The browser tab MUST remain open for the translation to continue.
+	
+	// --- API KEY MODAL ---
 	const apiKeyModal = document.getElementById('api-key-modal');
 	const openModalBtn = document.getElementById('api-key-btn');
 	const closeModalBtn = document.getElementById('close-api-modal-btn');
@@ -45,7 +54,9 @@ document.addEventListener('DOMContentLoaded', function () { // Access data passe
 			saveKeysBtn.disabled = false;
 			saveKeysBtn.textContent = 'Save Keys';
 		});
-	}); // --- CLONE & EDIT MODAL ---
+	});
+	
+	// --- CLONE & EDIT MODAL ---
 	const cloneModal = document.getElementById('clone-modal');
 	const clonePromptBtn = document.getElementById('clone-prompt-btn');
 	const cloneExampleBtn = document.getElementById('clone-example-btn');
@@ -149,6 +160,16 @@ document.addEventListener('DOMContentLoaded', function () { // Access data passe
 		if (e.target === cloneModal) closeCloneModal();
 	});
 	if (saveCloneBtn) saveCloneBtn.addEventListener('click', () => {
+		// --- NEW: Client-side validation for system prompts ---
+		const type = cloneTypeInput.value;
+		const content = cloneContentInput.value;
+		if (type === 'prompt' && !content.includes('**EXAMPLES**')) {
+			cloneStatus.className = 'text-sm text-red-600';
+			cloneStatus.textContent = 'Error: System prompt must include the placeholder **EXAMPLES**.';
+			return; // Stop the save process
+		}
+		// --- End of new validation ---
+		
 		const formData = new FormData(cloneForm);
 		const originalText = saveCloneBtn.textContent;
 		saveCloneBtn.disabled = true;
@@ -198,7 +219,9 @@ document.addEventListener('DOMContentLoaded', function () { // Access data passe
 				saveCloneBtn.disabled = false;
 				saveCloneBtn.textContent = originalText;
 			});
-	}); // --- DYNAMIC MODEL INPUT ---
+	});
+	
+	// --- DYNAMIC MODEL INPUT ---
 	const serviceSelect = document.getElementById('llm_service');
 	const modelInput = document.getElementById('model_name_input');
 	const modelSelect = document.getElementById('model_name_select');
@@ -246,7 +269,9 @@ document.addEventListener('DOMContentLoaded', function () { // Access data passe
 			this.textContent = 'Refresh List';
 		});
 	});
-	toggleModelInput(); // --- AJAX-BASED TRANSLATION LOGIC ---
+	toggleModelInput();
+	
+	// --- AJAX-BASED TRANSLATION LOGIC ---
 	const translationJobs = {}; // Stores the state of each running job
 	async function translateNextSection(projectId) {
 		const job = translationJobs[projectId];
@@ -258,7 +283,8 @@ document.addEventListener('DOMContentLoaded', function () { // Access data passe
 				total: project.progress_total
 			});
 			return; // Job was stopped or completed
-		} // Update UI to show we are working
+		}
+		// Update UI to show we are working
 		updateUI(projectId, {
 			status: 'translating',
 			done: project.progress_done,
@@ -277,9 +303,11 @@ document.addEventListener('DOMContentLoaded', function () { // Access data passe
 			const data = await response.json();
 			if (!data.success) {
 				throw new Error(data.message || 'An unknown error occurred on the server.');
-			} // Update client-side project data with accurate count from server
+			}
+			// Update client-side project data with accurate count from server
 			project.progress_done = data.new_progress_done || project.progress_done;
-			if (data.completed) { // Project is fully translated
+			if (data.completed) {
+				// Project is fully translated
 				job.isRunning = false;
 				project.progress_done = project.progress_total;
 				updateUI(projectId, {
@@ -288,7 +316,8 @@ document.addEventListener('DOMContentLoaded', function () { // Access data passe
 					total: project.progress_total
 				});
 				return; // End the loop
-			} // A section was translated successfully, continue to the next one
+			}
+			// A section was translated successfully, continue to the next one
 			setTimeout(() => translateNextSection(projectId), 100); // Small delay
 		} catch (error) {
 			job.isRunning = false;
@@ -340,7 +369,9 @@ document.addEventListener('DOMContentLoaded', function () { // Access data passe
 				total: project.progress_total
 			});
 		}
-	} // --- UI AND EXPORT ---
+	}
+	
+	// --- UI AND EXPORT ---
 	const exportModal = document.getElementById('export-modal');
 	const closeExportModalBtn = document.getElementById('close-modal-btn');
 	const exportFileList = document.getElementById('export-file-list');
@@ -440,7 +471,9 @@ document.addEventListener('DOMContentLoaded', function () { // Access data passe
 				viewBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
 			}
 		}
-	} // --- Initial Page Load ---
+	}
+	
+	// --- Initial Page Load ---
 	projects.forEach(project => {
 		updateUI(project.id, {
 			done: project.progress_done,
