@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	});
 	
-	// --- CLONE & EDIT MODAL ---
+	// --- CLONE & EDIT (PROMPTS MODAL & EXAMPLES REDIRECT) ---
 	const cloneModal = document.getElementById('clone-modal');
 	const clonePromptBtn = document.getElementById('clone-prompt-btn');
 	const cloneExampleBtn = document.getElementById('clone-example-btn');
@@ -74,14 +74,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	const exampleSelect = document.getElementById('examples_file');
 	
 	function updatePromptButton() {
-		const select = promptSelect;
-		const button = clonePromptBtn;
-		if (!select || !button) return;
-		const selectedOption = select.options[select.selectedIndex];
+		if (!promptSelect || !clonePromptBtn) return;
+		const selectedOption = promptSelect.options[promptSelect.selectedIndex];
 		if (selectedOption && selectedOption.parentElement.tagName === 'OPTGROUP' && selectedOption.parentElement.label.startsWith('Custom')) {
-			button.textContent = 'Edit';
+			clonePromptBtn.textContent = 'Edit';
 		} else {
-			button.textContent = 'Clone & Edit';
+			clonePromptBtn.textContent = 'Clone & Edit';
 		}
 	}
 	
@@ -99,21 +97,22 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 	
-	function openCloneModal(type) {
-		const isPrompt = type === 'prompt';
-		const sourceSelect = isPrompt ? promptSelect : exampleSelect;
-		const sourceFile = sourceSelect.value;
+	// Simplified for prompts only
+	function openCloneModalForPrompt() {
+		const sourceFile = promptSelect.value;
 		if (!sourceFile) {
-			alert('Please select a file to clone or edit first.');
+			alert('Please select a prompt to clone or edit first.');
 			return;
 		}
-		const selectedOption = sourceSelect.options[sourceSelect.selectedIndex];
+		const selectedOption = promptSelect.options[promptSelect.selectedIndex];
 		const isEditMode = selectedOption && selectedOption.parentElement.tagName === 'OPTGROUP' && selectedOption.parentElement.label.startsWith('Custom');
-		cloneModalTitle.textContent = isEditMode ? (isPrompt ? 'Edit Custom Prompt' : 'Edit Custom Example') : (isPrompt ? 'Clone & Edit Prompt' : 'Clone & Edit Examples');
-		cloneTypeInput.value = type;
+		
+		cloneModalTitle.textContent = isEditMode ? 'Edit Custom Prompt' : 'Clone & Edit Prompt';
+		cloneTypeInput.value = 'prompt';
 		cloneContentInput.value = 'Loading...';
 		cloneStatus.textContent = '';
 		saveCloneBtn.textContent = isEditMode ? 'Save Changes' : 'Save Custom File';
+		
 		if (isEditMode) {
 			cloneNameInput.value = sourceFile.split('.').slice(0, -1).join('.');
 			cloneNameInput.readOnly = true;
@@ -126,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			originalFileInput.value = '';
 		}
 		cloneModal.classList.remove('hidden');
-		fetch(`api/get_file_content.php?type=${type}&file=${encodeURIComponent(sourceFile)}`)
+		fetch(`api/get_file_content.php?type=prompt&file=${encodeURIComponent(sourceFile)}`)
 			.then(res => res.json())
 			.then(data => {
 				if (data.success) {
@@ -145,6 +144,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		cloneNameInput.readOnly = false;
 		cloneNameInput.classList.remove('bg-secondary', 'cursor-not-allowed');
 	}
+	
 	if (promptSelect) {
 		promptSelect.addEventListener('change', updatePromptButton);
 		updatePromptButton();
@@ -153,57 +153,96 @@ document.addEventListener('DOMContentLoaded', function () {
 		exampleSelect.addEventListener('change', updateExampleButton);
 		updateExampleButton();
 	}
-	if (clonePromptBtn) clonePromptBtn.addEventListener('click', () => openCloneModal('prompt'));
-	if (cloneExampleBtn) cloneExampleBtn.addEventListener('click', () => openCloneModal('example'));
+	
+	if (clonePromptBtn) clonePromptBtn.addEventListener('click', openCloneModalForPrompt);
+	
+	// NEW: Direct clone-and-redirect flow for examples
+	if (cloneExampleBtn) {
+		cloneExampleBtn.addEventListener('click', () => {
+			const sourceFile = exampleSelect.value;
+			if (!sourceFile) {
+				alert('Please select a default file to clone.');
+				return;
+			}
+			
+			const newName = prompt(`Enter a name for your new custom example file (based on ${sourceFile}):`, `My Copy of ${sourceFile.split('.').slice(0, -1).join('.')}`);
+			if (!newName || newName.trim() === '') {
+				alert('Clone cancelled. A valid name is required.');
+				return;
+			}
+			
+			cloneExampleBtn.disabled = true;
+			cloneExampleBtn.textContent = 'Cloning...';
+			
+			fetch(`api/get_file_content.php?type=example&file=${encodeURIComponent(sourceFile)}`)
+				.then(res => res.json())
+				.then(data => {
+					if (!data.success) throw new Error(data.message);
+					
+					const formData = new FormData();
+					formData.append('type', 'example');
+					formData.append('new_name', newName);
+					formData.append('content', data.content);
+					
+					return fetch('api/clone_and_save.php', { method: 'POST', body: formData });
+				})
+				.then(res => res.json())
+				.then(data => {
+					if (data.success && data.new_file) {
+						// Redirect to the new edit page
+						window.location.href = `edit_example.php?file=${encodeURIComponent(data.new_file.value)}`;
+					} else {
+						throw new Error(data.message || 'Failed to create the new file.');
+					}
+				})
+				.catch(err => {
+					alert(`Error: ${err.message}`);
+					cloneExampleBtn.disabled = false;
+					cloneExampleBtn.textContent = 'Clone & Edit';
+				});
+		});
+	}
+	
 	if (cancelCloneBtn) cancelCloneBtn.addEventListener('click', closeCloneModal);
 	if (cloneModal) cloneModal.addEventListener('click', (e) => {
 		if (e.target === cloneModal) closeCloneModal();
 	});
+	
+	// Simplified for prompts only
 	if (saveCloneBtn) saveCloneBtn.addEventListener('click', () => {
-		// --- NEW: Client-side validation for system prompts ---
-		const type = cloneTypeInput.value;
 		const content = cloneContentInput.value;
-		if (type === 'prompt' && !content.includes('**EXAMPLES**')) {
+		if (!content.includes('**EXAMPLES**')) {
 			cloneStatus.className = 'text-sm text-red-600';
 			cloneStatus.textContent = 'Error: System prompt must include the placeholder **EXAMPLES**.';
-			return; // Stop the save process
+			return;
 		}
-		// --- End of new validation ---
 		
 		const formData = new FormData(cloneForm);
 		const originalText = saveCloneBtn.textContent;
 		saveCloneBtn.disabled = true;
 		saveCloneBtn.textContent = 'Saving...';
 		cloneStatus.textContent = '';
-		fetch('api/clone_and_save.php', {
-			method: 'POST',
-			body: formData
-		})
+		
+		fetch('api/clone_and_save.php', { method: 'POST', body: formData })
 			.then(res => res.json())
 			.then(data => {
 				if (data.success) {
 					cloneStatus.className = 'text-sm text-green-600';
 					cloneStatus.textContent = data.message;
 					const isEditMode = originalFileInput.value !== '';
-					if (!isEditMode && data.new_file) { // Only add to dropdown if it was a clone (new file)
-						const type = cloneTypeInput.value;
-						const select = type === 'prompt' ? promptSelect : exampleSelect;
-						let optgroup = select.querySelector('optgroup[label="Custom Prompts"]') || select.querySelector('optgroup[label="Custom Examples"]');
+					if (!isEditMode && data.new_file) {
+						let optgroup = promptSelect.querySelector('optgroup[label="Custom Prompts"]');
 						if (!optgroup) {
 							optgroup = document.createElement('optgroup');
-							optgroup.label = type === 'prompt' ? 'Custom Prompts' : 'Custom Examples';
-							select.prepend(optgroup);
+							optgroup.label = 'Custom Prompts';
+							promptSelect.prepend(optgroup);
 						}
 						const newOption = document.createElement('option');
 						newOption.value = data.new_file.value;
 						newOption.textContent = data.new_file.text;
 						optgroup.prepend(newOption);
 						newOption.selected = true;
-						if (type === 'prompt') {
-							updatePromptButton();
-						} else {
-							updateExampleButton();
-						}
+						updatePromptButton();
 					}
 					setTimeout(closeCloneModal, 1500);
 				} else {
