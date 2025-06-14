@@ -38,10 +38,6 @@
 				$original = nl2br(htmlspecialchars($section['original'] ?? ''));
 				$translation = nl2br(htmlspecialchars($section['translation'] ?? ''));
 
-				$tags_to_remove = ["<turkish_translation>", "</turkish_translation>", "<translation>", "</translation>"];
-				$original = str_replace($tags_to_remove, "", $original);
-				$translation = str_replace($tags_to_remove, "", $translation);
-
 				$single_text .= $translation . "<br/><br/>";
 				$parallel_text .= '<tr><td style="width: 50%; padding: 10px; vertical-align: top;">' . $translation . '</td><td style="width: 50%; padding: 10px; vertical-align: top;">' . $original . '</td></tr>' . "\n";
 			}

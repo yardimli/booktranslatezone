@@ -40,6 +40,22 @@
 							<option value="English" selected>English</option>
 							<option value="Turkish">Turkish</option>
 							<option value="German">German</option>
+							<option value="French">French</option>
+							<option value="Spanish">Spanish</option>
+							<option value="Italian">Italian</option>
+							<option value="Portuguese">Portuguese</option>
+							<option value="Dutch">Dutch</option>
+							<option value="Swedish">Swedish</option>
+							<option value="Norwegian">Norwegian</option>
+							<option value="Danish">Danish</option>
+							<option value="Finnish">Finnish</option>
+							<option value="Polish">Polish</option>
+							<option value="Russian">Russian</option>
+							<option value="Czech">Czech</option>
+							<option value="Greek">Greek</option>
+							<option value="Hungarian">Hungarian</option>
+							<option value="Romanian">Romanian</option>
+							<option value="Traditional Chinese">Traditional Chinese</option>
 							<!-- Add other languages as needed -->
 						</select>
 					</div>
@@ -49,6 +65,22 @@
 							<option value="Turkish" selected>Turkish</option>
 							<option value="English">English</option>
 							<option value="German">German</option>
+							<option value="French">French</option>
+							<option value="Spanish">Spanish</option>
+							<option value="Italian">Italian</option>
+							<option value="Portuguese">Portuguese</option>
+							<option value="Dutch">Dutch</option>
+							<option value="Swedish">Swedish</option>
+							<option value="Norwegian">Norwegian</option>
+							<option value="Danish">Danish</option>
+							<option value="Finnish">Finnish</option>
+							<option value="Polish">Polish</option>
+							<option value="Russian">Russian</option>
+							<option value="Czech">Czech</option>
+							<option value="Greek">Greek</option>
+							<option value="Hungarian">Hungarian</option>
+							<option value="Romanian">Romanian</option>
+							<option value="Traditional Chinese">Traditional Chinese</option>
 							<!-- Add other languages as needed -->
 						</select>
 					</div>
