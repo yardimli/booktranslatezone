@@ -1,5 +1,4 @@
 // booktranslatezone/js/dashboard.js
-
 document.addEventListener('DOMContentLoaded', function () {
 	// Access data passed from PHP via the initialData object
 	const projects = initialData.projects;
@@ -24,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	const closeModalBtn = document.getElementById('close-api-modal-btn');
 	const saveKeysBtn = document.getElementById('save-api-keys-btn');
 	const apiKeyStatus = document.getElementById('api-key-status');
-	
 	if (openModalBtn) openModalBtn.addEventListener('click', () => apiKeyModal.classList.remove('hidden'));
 	if (closeModalBtn) closeModalBtn.addEventListener('click', () => apiKeyModal.classList.add('hidden'));
 	if (apiKeyModal) apiKeyModal.addEventListener('click', (e) => {
@@ -242,47 +240,50 @@ document.addEventListener('DOMContentLoaded', function () {
 	// --- AJAX-BASED TRANSLATION LOGIC ---
 	const translationJobs = {}; // Stores the state of each running job
 	
-	// Find the first section that isn't 'done'
-	function findNextSectionIndex(project) {
-		if (!project || !project.progress_total) return 0;
-		return project.progress_done; // Since 'done' is a count, it's also the index of the next item
-	}
-	
 	async function translateNextSection(projectId) {
 		const job = translationJobs[projectId];
 		const project = projects.find(p => p.id === projectId);
+		
 		if (!job || !job.isRunning || !project) {
-			updateUI(projectId, {status: 'paused', done: job.currentIndex, total: project.progress_total});
+			updateUI(projectId, {status: 'paused', done: project.progress_done, total: project.progress_total});
 			return; // Job was stopped or completed
 		}
-		const sectionIndex = job.currentIndex;
-		if (sectionIndex >= project.progress_total) {
-			job.isRunning = false;
-			updateUI(projectId, {status: 'complete', done: project.progress_total, total: project.progress_total});
-			return; // All sections are done
-		}
-		// Update UI to show we are working on the current section
-		updateUI(projectId, {status: 'translating', done: sectionIndex, total: project.progress_total});
+		
+		// Update UI to show we are working
+		updateUI(projectId, {status: 'translating', done: project.progress_done, total: project.progress_total});
+		
 		const formData = new FormData();
 		formData.append('project_id', projectId);
-		formData.append('section_index', sectionIndex);
+		// We no longer send section_index; the server finds the next pending one.
+		
 		try {
 			const response = await fetch('api/translate_section.php', {method: 'POST', body: formData});
 			if (!response.ok) {
 				throw new Error(`Server responded with status ${response.status}`);
 			}
 			const data = await response.json();
-			if (data.success) {
-				job.currentIndex++;
-				project.progress_done++; // Manually update our client-side count
-				// Call the next iteration
-				setTimeout(() => translateNextSection(projectId), 100); // Small delay
-			} else {
+			
+			if (!data.success) {
 				throw new Error(data.message || 'An unknown error occurred on the server.');
 			}
+			
+			// Update client-side project data with accurate count from server
+			project.progress_done = data.new_progress_done || project.progress_done;
+			
+			if (data.completed) {
+				// Project is fully translated
+				job.isRunning = false;
+				project.progress_done = project.progress_total;
+				updateUI(projectId, {status: 'complete', done: project.progress_total, total: project.progress_total});
+				return; // End the loop
+			}
+			
+			// A section was translated successfully, continue to the next one
+			setTimeout(() => translateNextSection(projectId), 100); // Small delay
+			
 		} catch (error) {
 			job.isRunning = false;
-			updateUI(projectId, {status: 'error', done: sectionIndex, total: project.progress_total});
+			updateUI(projectId, {status: 'error', done: project.progress_done, total: project.progress_total});
 			alert(`Translation failed for project ${project.name}: ${error.message}`);
 		}
 	}
@@ -293,15 +294,14 @@ document.addEventListener('DOMContentLoaded', function () {
 		const action = button.textContent.toLowerCase();
 		const formData = new FormData();
 		formData.append('project_id', projectId);
+		
 		if (action === 'translate' || action === 'resume' || action === 'retry') {
 			formData.append('action', 'start'); // 'start', 'resume', 'retry' all initiate the process
 			fetch('api/control_project.php', {method: 'POST', body: formData})
 				.then(res => res.json())
 				.then(data => {
 					if (data.success) {
-						const project = projects.find(p => p.id === projectId);
-						const startIndex = findNextSectionIndex(project);
-						translationJobs[projectId] = {isRunning: true, currentIndex: startIndex};
+						translationJobs[projectId] = {isRunning: true};
 						translateNextSection(projectId);
 					} else {
 						alert(`Error: ${data.message}`);
@@ -314,8 +314,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			formData.append('action', 'pause');
 			fetch('api/control_project.php', {method: 'POST', body: formData}); // Inform server
 			const project = projects.find(p => p.id === projectId);
-			const currentIndex = translationJobs[projectId]?.currentIndex ?? project.progress_done;
-			updateUI(projectId, {status: 'paused', done: currentIndex, total: project.progress_total});
+			updateUI(projectId, {status: 'paused', done: project.progress_done, total: project.progress_total});
 		}
 	}
 	
@@ -335,7 +334,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	function hideModal() {
 		exportModal.classList.add('hidden');
 	}
-	
 	closeExportModalBtn.addEventListener('click', hideModal);
 	exportModal.addEventListener('click', (event) => {
 		if (event.target === exportModal) hideModal();
@@ -372,16 +370,22 @@ document.addEventListener('DOMContentLoaded', function () {
 		const statusBadge = document.getElementById(`status-${projectId}`);
 		const controlBtn = document.querySelector(`.btn-control[data-project-id="${projectId}"]`);
 		const exportBtn = document.querySelector(`.btn-export[data-project-id="${projectId}"]`);
+		const viewBtn = document.querySelector(`.btn-view[data-project-id="${projectId}"]`);
+		
 		if (!progressBar || !progressText || !statusBadge || !controlBtn || !exportBtn) return;
+		
 		const percent = data.total > 0 ? (data.done / data.total) * 100 : 0;
 		progressBar.style.width = `${percent}%`;
 		progressText.textContent = `${data.done} / ${data.total} sections (${Math.round(percent)}%)`;
+		
 		const badgeBaseClasses = 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2';
 		const buttonBaseClasses = 'btn-control inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3';
+		
 		statusBadge.textContent = data.status;
 		statusBadge.className = badgeBaseClasses;
 		controlBtn.className = buttonBaseClasses;
 		controlBtn.disabled = false;
+		
 		switch (data.status) {
 			case 'translating':
 				statusBadge.classList.add('border-transparent', 'bg-yellow-500/20', 'text-yellow-700');
@@ -410,7 +414,16 @@ document.addEventListener('DOMContentLoaded', function () {
 				controlBtn.classList.add('bg-primary', 'text-primary-foreground', 'hover:bg-primary/90');
 				break;
 		}
-		exportBtn.disabled = (data.status === 'new' || data.done === 0);
+		
+		const hasProgress = data.done > 0;
+		exportBtn.disabled = !hasProgress;
+		if (viewBtn) {
+			if (hasProgress) {
+				viewBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+			} else {
+				viewBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+			}
+		}
 	}
 	
 	// --- Initial Page Load ---
@@ -422,6 +435,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 		const controlBtn = document.querySelector(`.btn-control[data-project-id="${project.id}"]`);
 		if (controlBtn) controlBtn.addEventListener('click', handleControlButtonClick);
+		
 		const exportBtn = document.querySelector(`.btn-export[data-project-id="${project.id}"]`);
 		if (exportBtn) exportBtn.addEventListener('click', handleExportClick);
 	});

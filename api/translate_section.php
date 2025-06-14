@@ -1,9 +1,8 @@
-<?php
-// api/translate_section.php
-
+<?php // api/translate_section.php
 	session_start();
 	require_once '../includes/auth.php';
 	require_once '../includes/functions.php';
+
 	header('Content-Type: application/json');
 
 	if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -12,11 +11,12 @@
 	}
 
 	$project_id = $_POST['project_id'] ?? null;
+// section_index is now optional. If not provided (-1), we find the next pending section.
 	$section_index = isset($_POST['section_index']) ? (int)$_POST['section_index'] : -1;
 	$user_id = $_SESSION['user_id'];
 
-	if (!$project_id || $section_index < 0) {
-		echo json_encode(['success' => false, 'message' => 'Missing project ID or section index.']);
+	if (!$project_id) {
+		echo json_encode(['success' => false, 'message' => 'Missing project ID.']);
 		exit;
 	}
 
@@ -33,6 +33,24 @@
 		echo json_encode(['success' => false, 'message' => "API Key for '{$llm_service}' is not set. Please set it via the API Keys button."]);
 		exit;
 	}
+
+// --- Find next section to translate if no index is specified ---
+	if ($section_index === -1) {
+		foreach ($project['sections'] as $index => $section) {
+			if ($section['status'] !== 'done') {
+				$section_index = $index;
+				break;
+			}
+		}
+		// If loop finishes and index is still -1, all sections are done.
+		if ($section_index === -1) {
+			$project['status'] = 'complete';
+			save_project($user_id, $project);
+			echo json_encode(['success' => true, 'completed' => true, 'message' => 'Project translation is complete.']);
+			exit;
+		}
+	}
+
 
 	if (!isset($project['sections'][$section_index])) {
 		echo json_encode(['success' => false, 'message' => 'Section index out of bounds.']);
@@ -53,6 +71,7 @@
 			$messages[] = ['role' => 'assistant', 'content' => $prev_section['translation']];
 		}
 	}
+
 	$messages[] = ['role' => 'user', 'content' => $section['original']];
 
 // Prepare system prompt with examples
@@ -74,7 +93,6 @@
 		// Non-fatal error, just proceed without examples
 	}
 
-
 // Call the LLM
 	$result = llm_translate($temp_system_prompt, $messages, $llm_service, $model_name, $api_key);
 
@@ -94,14 +112,17 @@
 
 	$section['status'] = 'done';
 
-// Check if all sections are done
+// Recalculate progress and check for completion
+	$done_count = 0;
 	$all_done = true;
 	foreach ($project['sections'] as $s) {
-		if ($s['status'] !== 'done') {
+		if ($s['status'] === 'done') {
+			$done_count++;
+		} else {
 			$all_done = false;
-			break;
 		}
 	}
+
 	if ($all_done) {
 		$project['status'] = 'complete';
 	}
@@ -110,6 +131,8 @@
 
 	echo json_encode([
 		'success' => true,
+		'completed' => $all_done,
 		'message' => 'Section translated successfully.',
-		'translation' => $result['content']
+		'translation' => $result['content'],
+		'new_progress_done' => $done_count
 	]);

@@ -184,6 +184,7 @@
 							<td class="p-4 align-middle">
 								<div class="flex items-center gap-2">
 									<button class="btn-control" data-project-id="<?php echo $project['id']; ?>"></button>
+									<a href="view_project.php?id=<?php echo $project['id']; ?>" class="btn-view inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-3 <?php if ($project['progress_done'] == 0) echo 'opacity-50 cursor-not-allowed pointer-events-none'; ?>" title="View & Edit Sections">View</a>
 									<button class="btn-export inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-3" data-project-id="<?php echo $project['id']; ?>">Export</button>
 									<form action="api/delete_project.php" method="post" onsubmit="return confirm('Are you sure? This cannot be undone.');">
 										<input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
