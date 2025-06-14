@@ -7,9 +7,9 @@
 		<div class="flex justify-between items-start mb-4">
 			<div>
 				<div class="flex items-center">
-					<img src="https://booktranslationzone.com/images/btz2.png" style="width: 80px; height: 80px; margin-right: 20px;" alt="Book Translate Zone Logo">
+					<img src="https://booktranslationzone.com/images/btz2.png" style="width: 80px; height: 80px; margin-right: 20px;" alt="Book Translation Zone Logo">
 					<div>
-						<h1 class="text-3xl font-bold tracking-tight">Book Translate Zone</h1>
+						<h1 class="text-3xl font-bold tracking-tight">Book Translation Zone</h1>
 						<p class="text-muted-foreground">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</p>
 					</div>
 				</div>

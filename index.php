@@ -13,7 +13,11 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Welcome to Book Translator Zone</title>
+	<title>Welcome to Book Translation Zone</title>
+	<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
 	<script src="https://cdn.tailwindcss.com"></script>
 	<style>
       /* Re-using the shadcn/ui theme variables for consistency */
@@ -61,8 +65,8 @@
 <header class="border-b">
 	<div class="container flex items-center justify-between h-16">
 		<div class="flex items-center gap-4">
-			<img src="https://booktranslationzone.com/images/btz2.png" class="h-10 w-10" alt="Book Translate Zone Logo">
-			<span class="text-xl font-bold tracking-tight">Book Translator Zone</span>
+			<img src="https://booktranslationzone.com/images/btz2.png" class="h-10 w-10" alt="Book Translation Zone Logo">
+			<span class="text-xl font-bold tracking-tight">Book Translation Zone</span>
 		</div>
 		<div class="flex items-center gap-2">
 			<a href="login.php" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80">
@@ -150,7 +154,7 @@
 <!-- Footer -->
 <footer class="border-t">
 	<div class="container py-6 text-center text-sm text-muted-foreground">
-		© <?php echo date("Y"); ?> Book Translator Zone. All Rights Reserved.
+		© <?php echo date("Y"); ?> Book Translation Zone. All Rights Reserved.
 	</div>
 </footer>
 

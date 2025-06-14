@@ -115,7 +115,7 @@
 			$url = getenv('OPENROUTER_API_BASE') ?: 'https://openrouter.ai/api/v1/chat/completions';
 			$headers[] = 'Authorization: Bearer ' . $api_key;
 			$headers[] = 'HTTP-Referer: ' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
-			$headers[] = 'X-Title: Book Translator Zone';
+			$headers[] = 'X-Title: Book Translation Zone';
 		} else {
 			return ["content" => "Error: LLM service '{$llm_service}' not configured.", "prompt_tokens" => 0, "completion_tokens" => 0];
 		}
