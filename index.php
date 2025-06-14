@@ -18,49 +18,123 @@
 	<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
 	<link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
 	<link rel="manifest" href="images/site.webmanifest">
+	<script>
+		// On page load or when changing themes, best to add inline in `head` to avoid FOUC
+		if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+			document.documentElement.classList.add('dark')
+		} else {
+			document.documentElement.classList.remove('dark')
+		}
+	</script>
 	<script src="https://cdn.tailwindcss.com"></script>
 	<style>
       /* Re-using the shadcn/ui theme variables for consistency */
       @layer base {
           :root {
-              --background: 0 0% 100%; --foreground: 222.2 84% 4.9%;
-              --card: 0 0% 100%; --card-foreground: 222.2 84% 4.9%;
-              --popover: 0 0% 100%; --popover-foreground: 222.2 84% 4.9%;
-              --primary: 222.2 47.4% 11.2%; --primary-foreground: 210 40% 98%;
-              --secondary: 210 40% 96.1%; --secondary-foreground: 222.2 47.4% 11.2%;
-              --muted: 210 40% 96.1%; --muted-foreground: 215.4 16.3% 46.9%;
-              --accent: 210 40% 96.1%; --accent-foreground: 222.2 47.4% 11.2%;
-              --destructive: 0 84.2% 60.2%; --destructive-foreground: 210 40% 98%;
-              --border: 214.3 31.8% 91.4%; --input: 214.3 31.8% 91.4%;
-              --ring: 222.2 84% 4.9%; --radius: 0.5rem;
+              --background: 0 0% 100%;
+              --foreground: 222.2 84% 4.9%;
+              --card: 0 0% 100%;
+              --card-foreground: 222.2 84% 4.9%;
+              --popover: 0 0% 100%;
+              --popover-foreground: 222.2 84% 4.9%;
+              --primary: 222.2 47.4% 11.2%;
+              --primary-foreground: 210 40% 98%;
+              --secondary: 210 40% 96.1%;
+              --secondary-foreground: 222.2 47.4% 11.2%;
+              --muted: 210 40% 96.1%;
+              --muted-foreground: 215.4 16.3% 46.9%;
+              --accent: 210 40% 96.1%;
+              --accent-foreground: 222.2 47.4% 11.2%;
+              --destructive: 0 84.2% 60.2%;
+              --destructive-foreground: 210 40% 98%;
+              --border: 214.3 31.8% 91.4%;
+              --input: 214.3 31.8% 91.4%;
+              --ring: 222.2 84% 4.9%;
+              --radius: 0.5rem;
+          }
+
+          .dark {
+              --background: 222.2 84% 4.9%;
+              --foreground: 210 40% 98%;
+              --card: 222.2 84% 4.9%;
+              --card-foreground: 210 40% 98%;
+              --popover: 222.2 84% 4.9%;
+              --popover-foreground: 210 40% 98%;
+              --primary: 210 40% 98%;
+              --primary-foreground: 222.2 47.4% 11.2%;
+              --secondary: 217.2 32.6% 17.5%;
+              --secondary-foreground: 210 40% 98%;
+              --muted: 217.2 32.6% 17.5%;
+              --muted-foreground: 215 20.2% 65.1%;
+              --accent: 217.2 32.6% 17.5%;
+              --accent-foreground: 210 40% 98%;
+              --destructive: 0 62.8% 30.6%;
+              --destructive-foreground: 210 40% 98%;
+              --border: 217.2 32.6% 17.5%;
+              --input: 217.2 32.6% 17.5%;
+              --ring: 212.7 26.8% 83.9%;
           }
       }
 	</style>
 	<script>
 		// Tailwind config
 		tailwind.config = {
+			darkMode: 'class',
 			theme: {
-				container: { center: true, padding: "2rem", screens: { "2xl": "1400px" }, },
+				container: {
+					center: true,
+					padding: "2rem",
+					screens: {
+						"2xl": "1400px"
+					},
+				},
 				extend: {
 					colors: {
-						border: "hsl(var(--border))", input: "hsl(var(--input))", ring: "hsl(var(--ring))",
-						background: "hsl(var(--background))", foreground: "hsl(var(--foreground))",
-						primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))", },
-						secondary: { DEFAULT: "hsl(var(--secondary))", foreground: "hsl(var(--secondary-foreground))", },
-						destructive: { DEFAULT: "hsl(var(--destructive))", foreground: "hsl(var(--destructive-foreground))", },
-						muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))", },
-						accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))", },
-						popover: { DEFAULT: "hsl(var(--popover))", foreground: "hsl(var(--popover-foreground))", },
-						card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))", },
+						border: "hsl(var(--border))",
+						input: "hsl(var(--input))",
+						ring: "hsl(var(--ring))",
+						background: "hsl(var(--background))",
+						foreground: "hsl(var(--foreground))",
+						primary: {
+							DEFAULT: "hsl(var(--primary))",
+							foreground: "hsl(var(--primary-foreground))",
+						},
+						secondary: {
+							DEFAULT: "hsl(var(--secondary))",
+							foreground: "hsl(var(--secondary-foreground))",
+						},
+						destructive: {
+							DEFAULT: "hsl(var(--destructive))",
+							foreground: "hsl(var(--destructive-foreground))",
+						},
+						muted: {
+							DEFAULT: "hsl(var(--muted))",
+							foreground: "hsl(var(--muted-foreground))",
+						},
+						accent: {
+							DEFAULT: "hsl(var(--accent))",
+							foreground: "hsl(var(--accent-foreground))",
+						},
+						popover: {
+							DEFAULT: "hsl(var(--popover))",
+							foreground: "hsl(var(--popover-foreground))",
+						},
+						card: {
+							DEFAULT: "hsl(var(--card))",
+							foreground: "hsl(var(--card-foreground))",
+						},
 					},
-					borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)", },
+					borderRadius: {
+						lg: "var(--radius)",
+						md: "calc(var(--radius) - 2px)",
+						sm: "calc(var(--radius) - 4px)",
+					},
 				},
 			},
 		}
 	</script>
 </head>
 <body class="bg-background text-foreground antialiased">
-
 <!-- Header -->
 <header class="border-b">
 	<div class="container flex items-center justify-between h-16">
@@ -69,6 +143,11 @@
 			<span class="text-xl font-bold tracking-tight">Book Translation Zone</span>
 		</div>
 		<div class="flex items-center gap-2">
+			<button id="theme-toggle-btn" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors h-10 w-10 hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+				<span class="sr-only">Toggle theme</span>
+			</button>
 			<a href="login.php" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-9 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80">
 				Login
 			</a>
@@ -104,7 +183,6 @@
 				<h2 class="text-3xl font-bold tracking-tight">How It Works</h2>
 				<p class="text-muted-foreground mt-2">A simple, powerful workflow for high-quality book translation.</p>
 			</div>
-
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 text-center">
 				<!-- Step 1 -->
 				<div class="flex flex-col items-center p-6 bg-card rounded-lg border shadow-sm">
@@ -150,13 +228,20 @@
 		</div>
 	</section>
 </main>
-
 <!-- Footer -->
 <footer class="border-t">
 	<div class="container py-6 text-center text-sm text-muted-foreground">
 		© <?php echo date("Y"); ?> Book Translation Zone. All Rights Reserved.
 	</div>
 </footer>
-
+<script>
+	const themeToggleButton = document.getElementById('theme-toggle-btn');
+	if (themeToggleButton) {
+		themeToggleButton.addEventListener('click', () => {
+			const isDark = document.documentElement.classList.toggle('dark');
+			localStorage.setItem('theme', isDark ? 'dark' : 'light');
+		});
+	}
+</script>
 </body>
 </html>

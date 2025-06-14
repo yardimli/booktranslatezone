@@ -5,6 +5,15 @@ document.addEventListener('DOMContentLoaded', function () {
 	const projects = initialData.projects;
 	const defaultModels = initialData.defaultModels;
 	
+	// --- THEME TOGGLE ---
+	const themeToggleButton = document.getElementById('theme-toggle-btn');
+	if (themeToggleButton) {
+		themeToggleButton.addEventListener('click', () => {
+			const isDark = document.documentElement.classList.toggle('dark');
+			localStorage.setItem('theme', isDark ? 'dark' : 'light');
+		});
+	}
+	
 	// --- IMPORTANT NOTE ---
 	// This version uses client-side AJAX to process translations.
 	// The browser tab MUST remain open for the translation to continue.
