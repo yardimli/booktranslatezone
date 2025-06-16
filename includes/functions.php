@@ -125,7 +125,7 @@
 		$post_fields = json_encode([
 			'model' => $model_name,
 			'messages' => $all_messages,
-			'max_tokens' => 4096,
+			'max_tokens' => 20000,
 			'stream' => false
 		]);
 
