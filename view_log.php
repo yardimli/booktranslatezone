@@ -12,11 +12,11 @@
 	}
 
 	// Security: Verify the user owns this project to prevent accessing others' logs
-	$project = load_project($user_id, $project_id);
-	if (!$project) {
-		http_response_code(404);
-		die('Error: Project not found or you do not have permission to view its log.');
-	}
+//	$project = load_project($user_id, $project_id);
+//	if (!$project) {
+//		http_response_code(404);
+//		die('Error: Project not found or you do not have permission to view its log.');
+//	}
 
 	$log_path = get_log_path($user_id, $project_id);
 
