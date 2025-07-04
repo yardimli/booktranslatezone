@@ -1,22 +1,32 @@
 <?php
-	session_start();
-	require_once 'includes/auth.php'; // Ensures user is logged in
+	// MODIFIED: Removed session and authentication to make this page public for shareable links.
 	require_once 'includes/functions.php';
 
 	$project_id = $_GET['id'] ?? null;
-	$user_id = $_SESSION['user_id'];
 
 	if (!$project_id) {
 		http_response_code(400);
 		die('Error: Project ID is missing.');
 	}
 
-	// Security: Verify the user owns this project to prevent accessing others' logs
-//	$project = load_project($user_id, $project_id);
-//	if (!$project) {
-//		http_response_code(404);
-//		die('Error: Project not found or you do not have permission to view its log.');
-//	}
+	// MODIFIED: Find the user ID associated with this project ID to locate the files.
+	// This is necessary because the URL is now shareable and doesn't rely on a session.
+	$user_id = find_user_id_for_project($project_id);
+
+	if (!$user_id) {
+		// If no user is found for this project, the project does not exist or the ID is wrong.
+		http_response_code(404);
+		die('Error: Project not found.');
+	}
+
+	// MODIFIED: Now that we have the user_id, we can load the project to get its name.
+	$project = load_project($user_id, $project_id);
+	if (!$project) {
+		// This is an unlikely race condition if the project file was just deleted,
+		// but it's a good practice to handle it.
+		http_response_code(404);
+		die('Error: Project data could not be loaded.');
+	}
 
 	$log_path = get_log_path($user_id, $project_id);
 

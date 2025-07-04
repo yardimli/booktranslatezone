@@ -67,6 +67,39 @@
 		return $path;
 	}
 
+	/**
+	 * Finds the user ID associated with a given project ID by scanning project directories.
+	 * This is used for shareable log links and assumes project IDs are unique.
+	 * Note: This can be slow if there are many users.
+	 *
+	 * @param string $project_id The ID of the project to find.
+	 * @return string|null The user ID if found, otherwise null.
+	 */
+	function find_user_id_for_project($project_id) // MODIFIED: New function to find project owner
+	{
+		if (empty($project_id)) {
+			return null;
+		}
+
+		// Sanitize project_id to prevent directory traversal attacks (e.g., '../')
+		$clean_project_id = basename($project_id);
+		if ($clean_project_id !== $project_id) {
+			// An attempt to traverse directories was made.
+			return null;
+		}
+
+		// Search through all user directories inside the main projects directory
+		$user_dirs = glob(PROJECTS_DIR . '*', GLOB_ONLYDIR);
+		foreach ($user_dirs as $user_dir) {
+			$project_file = $user_dir . "/project_{$clean_project_id}.json";
+			if (file_exists($project_file)) {
+				return basename($user_dir); // The directory name is the user_id
+			}
+		}
+
+		return null; // Project not found in any user directory
+	}
+
 	function resolve_asset_path($type, $filename, $user_id)
 	{
 		if (empty($filename) || empty($user_id)) {
