@@ -96,6 +96,9 @@
 // Call the LLM
 	$result = llm_translate($temp_system_prompt, $messages, $llm_service, $model_name, $api_key);
 
+	// New: Log the entire interaction (prompt, response, tokens) to a file
+	log_llm_interaction($user_id, $project_id, $temp_system_prompt, $messages, $result);
+
 // Update the project data
 	$section['translation'] = $result['content'];
 	$section['prompt_tokens'] = $result['prompt_tokens'];

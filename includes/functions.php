@@ -4,6 +4,7 @@
 	define('EXAMPLES_DIR', __DIR__ . '/../examples/');
 	define('UPLOADS_DIR', __DIR__ . '/../uploads/');
 	define('OUTPUT_DIR', __DIR__ . '/../output/');
+	define('LOGS_DIR', __DIR__ . '/../logs/'); // New: Directory for logs
 	define('OPENROUTER_MODELS_FILE', __DIR__ . '/../openrouter_models.json');
 
 	//make sure directories exist
@@ -22,10 +23,15 @@
 	if (!is_dir(OUTPUT_DIR)) {
 		mkdir(OUTPUT_DIR, 0775, true);
 	}
+	// New: Create logs directory if it doesn't exist
+	if (!is_dir(LOGS_DIR)) {
+		mkdir(LOGS_DIR, 0775, true);
+	}
 
 
 // --- HELPER FUNCTIONS ---
-	function get_user_project_dir($user_id) {
+	function get_user_project_dir($user_id)
+	{
 		$path = PROJECTS_DIR . $user_id . '/';
 		if (!is_dir($path)) {
 			mkdir($path, 0775, true);
@@ -33,7 +39,8 @@
 		return $path;
 	}
 
-	function get_user_prompt_dir($user_id) {
+	function get_user_prompt_dir($user_id)
+	{
 		$path = PROMPTS_DIR . $user_id . '/';
 		if (!is_dir($path)) {
 			mkdir($path, 0775, true);
@@ -41,7 +48,8 @@
 		return $path;
 	}
 
-	function get_user_example_dir($user_id) {
+	function get_user_example_dir($user_id)
+	{
 		$path = EXAMPLES_DIR . $user_id . '/';
 		if (!is_dir($path)) {
 			mkdir($path, 0775, true);
@@ -49,8 +57,21 @@
 		return $path;
 	}
 
-	function resolve_asset_path($type, $filename, $user_id) {
-		if (empty($filename) || empty($user_id)) return null;
+	// New: Helper function for user-specific logs
+	function get_user_log_dir($user_id)
+	{
+		$path = LOGS_DIR . $user_id . '/';
+		if (!is_dir($path)) {
+			mkdir($path, 0775, true);
+		}
+		return $path;
+	}
+
+	function resolve_asset_path($type, $filename, $user_id)
+	{
+		if (empty($filename) || empty($user_id)) {
+			return null;
+		}
 
 		$user_path = null;
 		$global_path = null;
@@ -75,11 +96,19 @@
 	}
 
 
-	function get_project_path($user_id, $project_id) {
+	function get_project_path($user_id, $project_id)
+	{
 		return get_user_project_dir($user_id) . "project_{$project_id}.json";
 	}
 
-	function load_project($user_id, $project_id) {
+	// New: Helper function to get the path for a project's log file
+	function get_log_path($user_id, $project_id)
+	{
+		return get_user_log_dir($user_id) . "project_{$project_id}.log";
+	}
+
+	function load_project($user_id, $project_id)
+	{
 		$path = get_project_path($user_id, $project_id);
 		if (file_exists($path)) {
 			$content = file_get_contents($path);
@@ -88,12 +117,42 @@
 		return null;
 	}
 
-	function save_project($user_id, $project_data) {
+	function save_project($user_id, $project_data)
+	{
 		$path = get_project_path($user_id, $project_data['id']);
 		file_put_contents($path, json_encode($project_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 	}
 
-	function slugify($text) {
+	// New: Function to log the details of an LLM interaction
+	function log_llm_interaction($user_id, $project_id, $system_prompt, $messages, $result)
+	{
+		$log_path = get_log_path($user_id, $project_id);
+		$timestamp = date('Y-m-d H:i:s T');
+		$total_tokens = ($result['prompt_tokens'] ?? 0) + ($result['completion_tokens'] ?? 0);
+
+		$log_content = "======================================================================\n";
+		$log_content .= "Timestamp: {$timestamp}\n";
+		$log_content .= "======================================================================\n\n";
+
+		$log_content .= "--- SYSTEM PROMPT ---\n";
+		$log_content .= $system_prompt . "\n\n";
+
+		$log_content .= "--- MESSAGES (PROMPT) ---\n";
+		$log_content .= json_encode($messages, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n\n";
+
+		$log_content .= "--- LLM RESPONSE ---\n";
+		$log_content .= "Content:\n" . $result['content'] . "\n\n";
+
+		$log_content .= "--- USAGE ---\n";
+		$log_content .= "Prompt Tokens:     " . ($result['prompt_tokens'] ?? 'N/A') . "\n";
+		$log_content .= "Completion Tokens: " . ($result['completion_tokens'] ?? 'N/A') . "\n";
+		$log_content .= "Total Tokens:      " . $total_tokens . "\n\n\n";
+
+		file_put_contents($log_path, $log_content, FILE_APPEND);
+	}
+
+	function slugify($text)
+	{
 		$text = preg_replace('~[^\pL\d]+~u', '-', $text);
 		$text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
 		$text = preg_replace('~[^-\w]+~', '', $text);
@@ -103,7 +162,8 @@
 		return empty($text) ? 'n-a' : $text;
 	}
 
-	function llm_translate($system_prompt, $messages, $llm_service, $model_name, $api_key) {
+	function llm_translate($system_prompt, $messages, $llm_service, $model_name, $api_key)
+	{
 		$url = '';
 		$headers = [
 			'Content-Type: application/json'
