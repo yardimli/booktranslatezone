@@ -80,14 +80,17 @@
 		$examples_path = resolve_asset_path('example', $project['examples_file'], $user_id);
 		$examples_content = $examples_path ? file_get_contents($examples_path) : '[]';
 		$example_pairs = json_decode($examples_content, true);
-		if (strpos($temp_system_prompt, '**EXAMPLES**') !== false && count($example_pairs) >= 2) {
+		if (stripos($temp_system_prompt, '**EXAMPLES**') !== false && count($example_pairs) >= 2) {
 			$keys = array_rand($example_pairs, 2);
 			$examples_str = "";
 			foreach ($keys as $key) {
 				$ex = $example_pairs[$key];
 				$examples_str .= "{$project['source_language']}\n{$ex[0]}\n{$project['target_language']}\n{$ex[1]}\n\n";
 			}
-			$temp_system_prompt = str_replace('**EXAMPLES**', trim($examples_str), $temp_system_prompt);
+			$temp_system_prompt = str_ireplace('**EXAMPLES**', trim($examples_str), $temp_system_prompt);
+		} else
+		{
+			$temp_system_prompt = str_ireplace('**EXAMPLES**', 'No examples available. Follow the prompt for instructions.', $temp_system_prompt);
 		}
 	} catch (Exception $e) {
 		// Non-fatal error, just proceed without examples
